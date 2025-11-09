@@ -33,25 +33,14 @@ module system_top (CLOCK_50, KEY, HEX0, HEX1, HEX2, HEX3, HEX4, HEX5, LEDR);
     wire halt_flag;
     wire enable_count;
 
-    // -----------------------------
-    // Module Instantiations
-    // -----------------------------
 
     // 1. Order Generator
     order_generator u_gen(clk, reset, buy_price, sell_price);
 
     // 2. Matching Engine
     //   Calculates best_bid / best_ask / trade_price / match_flag
-    matching_engine_8 u_match(
-        clk,
-        reset,
-        buy_price,
-        sell_price,
-        match_flag,
-        trade_price,
-        best_bid,
-        best_ask
-    );
+    matching_engine_8 u_match(clk, reset, buy_price, sell_price, match_flag, trade_price, best_bid, best_ask);
+
 
     // 3. Controller FSM
     controller_fsm u_ctrl(clk, reset, match_flag, halt_flag, state, enable_count);
