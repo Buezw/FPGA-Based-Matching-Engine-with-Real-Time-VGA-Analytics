@@ -1,9 +1,5 @@
 // =====================================================
 // Module: Controller FSM
-// Description:
-//   Controls trading state transitions based on match_flag
-//   (from Matching Engine) and halt_flag (from Counter).
-//   Generates enable_count signal for trade accumulation.
 // =====================================================
 
 module controller_fsm (clk, reset, match_flag, halt_flag, state, enable_count);

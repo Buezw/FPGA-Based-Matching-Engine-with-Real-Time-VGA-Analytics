@@ -1,9 +1,5 @@
 // =====================================================
 // Module: Matching Engine (gate-level comparator + spread)
-// Description:
-//   Compares buy_price and sell_price at gate level using
-//   ripple-carry adders instead of relational operators.
-//   Outputs a match flag and absolute price difference (spread).
 // =====================================================
 
 module matching_engine (

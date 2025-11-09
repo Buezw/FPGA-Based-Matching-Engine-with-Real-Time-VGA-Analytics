@@ -1,4 +1,7 @@
+// =====================================================
 // Module 1: Order Generator (LFSR-based Price Feed)
+// =====================================================
+
 
 module order_generator (clk, reset, buy_price, sell_price);
     input  clk;         
