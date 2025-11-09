@@ -1,0 +1,187 @@
+当然可以。下面是你当前 FPGA Order Matching Engine 项目的完整整理版 Markdown 文档（可直接放进 README.md 或 milestone 报告中）：
+
+---
+
+# **FPGA Order Matching Engine**
+
+## 🧠 Summary
+
+This project implements a simplified **FPGA-based order matching engine** inspired by high-frequency trading systems.
+The system generates random buy and sell orders using an **LFSR-based Order Generator**, stores multiple recent orders in FIFO queues, and determines matches when the highest bid price meets or exceeds the lowest ask price.
+All modules are written in Verilog and visualized via **7-segment HEX displays and LEDs** on the DE1-SoC board.
+
+---
+
+## ⚙️ Module Overview
+
+| Module                        | Description                                                                                  | Key Inputs                                                 | Key Outputs                                         |
+| ----------------------------- | -------------------------------------------------------------------------------------------- | ---------------------------------------------------------- | --------------------------------------------------- |
+| **Order Generator**           | Generates pseudo-random buy and sell prices using 8-bit LFSRs.                               | `clk`, `reset`                                             | `buy_price[7:0]`, `sell_price[7:0]`                 |
+| **Matching Engine (8-depth)** | Stores recent 8 buy/sell prices (FIFO). Finds best bid/ask and determines if a trade occurs. | `clk`, `reset`, `buy_price`, `sell_price`                  | `match_flag`, `trade_price`, `best_bid`, `best_ask` |
+| **Controller FSM**            | Controls system state (IDLE → MATCH → HALT). Enables counting when trades occur.             | `match_flag`, `halt_flag`                                  | `state[1:0]`, `enable_count`                        |
+| **Counter**                   | Tracks total trade count and triggers system halt beyond threshold.                          | `clk`, `reset`, `match_flag`, `enable_count`               | `trade_count[7:0]`, `halt_flag`                     |
+| **Display**                   | Displays buy, sell, spread, and count on HEX displays; LEDs show FSM and trade flags.        | `buy_price`, `sell_price`, `trade_count`, `state`, `flags` | `HEX[5:0]`, `LED[9:0]`                              |
+
+---
+
+## 🔩 Key Code Snippets
+
+### **1. Order Generator (LFSR)**
+
+```verilog
+reg [7:0] lfsr1 = 8'hA5, lfsr2 = 8'h3C;
+reg [20:0] div;
+wire slow_clk = div[20];
+
+always @(posedge clk) div <= div + 1;
+
+always @(posedge slow_clk or posedge reset) begin
+    if (reset) begin
+        lfsr1 <= 8'hA5;
+        lfsr2 <= 8'h3C;
+    end else begin
+        lfsr1 <= {lfsr1[6:0], lfsr1[7]^lfsr1[5]^lfsr1[4]^lfsr1[3]};
+        lfsr2 <= {lfsr2[6:0], lfsr2[7]^lfsr2[5]^lfsr2[4]^lfsr2[1]};
+    end
+end
+
+assign buy_price  = 8'd50 + lfsr1[4:0];
+assign sell_price = 8'd55 + lfsr2[4:0];
+```
+
+---
+
+### **2. Matching Engine (8-depth FIFO)**
+
+```verilog
+always @(posedge clk or posedge reset) begin
+    if (reset) begin
+        buy_q0<=0; buy_q1<=0; buy_q2<=0; buy_q3<=0;
+        buy_q4<=0; buy_q5<=0; buy_q6<=0; buy_q7<=0;
+        sell_q0<=8'hFF; sell_q1<=8'hFF; sell_q2<=8'hFF; sell_q3<=8'hFF;
+        sell_q4<=8'hFF; sell_q5<=8'hFF; sell_q6<=8'hFF; sell_q7<=8'hFF;
+    end else begin
+        buy_q7<=buy_q6; buy_q6<=buy_q5; buy_q5<=buy_q4; buy_q4<=buy_q3;
+        buy_q3<=buy_q2; buy_q2<=buy_q1; buy_q1<=buy_q0; buy_q0<=buy_price;
+        sell_q7<=sell_q6; sell_q6<=sell_q5; sell_q5<=sell_q4; sell_q4<=sell_q3;
+        sell_q3<=sell_q2; sell_q2<=sell_q1; sell_q1<=sell_q0; sell_q0<=sell_price;
+    end
+end
+
+// Compare for best bid/ask and matching
+always @(*) begin
+    best_bid = buy_q0;
+    if (buy_q1 > best_bid) best_bid = buy_q1;
+    if (buy_q2 > best_bid) best_bid = buy_q2;
+    if (buy_q3 > best_bid) best_bid = buy_q3;
+    if (buy_q4 > best_bid) best_bid = buy_q4;
+    if (buy_q5 > best_bid) best_bid = buy_q5;
+    if (buy_q6 > best_bid) best_bid = buy_q6;
+    if (buy_q7 > best_bid) best_bid = buy_q7;
+
+    best_ask = sell_q0;
+    if (sell_q1 < best_ask) best_ask = sell_q1;
+    if (sell_q2 < best_ask) best_ask = sell_q2;
+    if (sell_q3 < best_ask) best_ask = sell_q3;
+    if (sell_q4 < best_ask) best_ask = sell_q4;
+    if (sell_q5 < best_ask) best_ask = sell_q5;
+    if (sell_q6 < best_ask) best_ask = sell_q6;
+    if (sell_q7 < best_ask) best_ask = sell_q7;
+end
+
+always @(*) begin
+    if (best_bid >= best_ask && best_bid != 0 && best_ask != 8'hFF)
+        match_flag = 1'b1;
+    else
+        match_flag = 1'b0;
+    trade_price = (best_bid + best_ask) >> 1;
+end
+```
+
+---
+
+### **3. Counter**
+
+```verilog
+always @(posedge clk or posedge reset) begin
+    if (reset) begin
+        trade_count <= 8'd0;
+        halt_flag   <= 1'b0;
+    end else begin
+        if (enable_count && match_flag && !halt_flag)
+            trade_count <= trade_count + 1'b1;
+        if (trade_count >= 8'd100)
+            halt_flag <= 1'b1;
+    end
+end
+```
+
+---
+
+### **4. Display (HEX + LED)**
+
+```verilog
+seg7 h0 (buy_price[3:0], HEX0);
+seg7 h1 (buy_price[7:4], HEX1);
+seg7 h2 (sell_price[3:0], HEX2);
+seg7 h3 (sell_price[7:4], HEX3);
+seg7 h4 (trade_price[3:0], HEX4);
+seg7 h5 (trade_price[7:4], HEX5);
+
+assign LEDR[0] = match_flag;
+assign LEDR[1] = halt_flag;
+assign LEDR[3:2] = state;
+assign LEDR[9:4] = trade_count[5:0];
+```
+
+---
+
+## 🧱 Top-Level Block Diagram
+
+```
++------------------------+
+|   Order Generator      |
+|  (LFSR Random Prices)  |
++-----------+------------+
+            |
+  buy_price,sell_price
+            v
++-----------+------------+
+| Matching Engine (8Q)   |
+| Finds best_bid/best_ask|
++-----------+------------+
+            |
+   match_flag, trade_price
+            v
++-----------+------------+
+| Controller FSM         |
+|  state / enable_count  |
++-----------+------------+
+            |
+   trade_count, halt_flag
+            v
++-----------+------------+
+| Display (HEX + LED)    |
++------------------------+
+```
+
+---
+
+## 🧭 Expected Board Output
+
+* **HEX0–HEX5**: show buy, sell, and trade prices in hex form.
+* **LED0**: lights on each trade (`match_flag = 1`).
+* **LED1**: lights when system halts (`halt_flag = 1`).
+* **LED2–3**: show FSM state bits.
+* **LED4–9**: show lower bits of trade counter.
+
+---
+
+## 🧩 Notes
+
+* All modules written using **basic Verilog (no arrays, no for-loops)**.
+* System demonstrates both combinational and sequential logic integration.
+* Can be extended with VGA/keyboard if desired for visualization.
+
+---
+

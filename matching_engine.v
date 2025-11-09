@@ -1,64 +1,102 @@
 // =====================================================
-// Module: Matching Engine (gate-level comparator + spread)
+// Module: matching_engine_8
 // =====================================================
 
-module matching_engine (
-    input  wire [7:0] buy_price,   // from order_generator
-    input  wire [7:0] sell_price,  // from order_generator
-    output wire       match_flag,  // 1 when buy >= sell
-    output wire [7:0] spread       // absolute difference |buy - sell|
+module matching_engine_8 (
+    input  clk,
+    input  reset,
+    input  [7:0] buy_price,
+    input  [7:0] sell_price,
+    output reg   match_flag,
+    output reg [7:0] trade_price,
+    output reg [7:0] best_bid,
+    output reg [7:0] best_ask
 );
 
-    // A - B using two's complement: A + (~B + 1)
-    wire [7:0] diff_ab;
-    wire       cout_ab;
-    ripple_add8 u_sub_ab (buy_price, ~sell_price, 1'b1, diff_ab, cout_ab);
+    // -------------------------------------------------
+    // 8-entry FIFO queues for buy and sell
+    // -------------------------------------------------
+    reg [7:0] buy_q0, buy_q1, buy_q2, buy_q3, buy_q4, buy_q5, buy_q6, buy_q7;
+    reg [7:0] sell_q0, sell_q1, sell_q2, sell_q3, sell_q4, sell_q5, sell_q6, sell_q7;
 
-    // B - A (for absolute value when buy < sell)
-    wire [7:0] diff_ba;
-    wire       cout_ba;
-    ripple_add8 u_sub_ba (sell_price, ~buy_price, 1'b1, diff_ba, cout_ba);
+    // -------------------------------------------------
+    // Queue update (shift right each clock tick)
+    // -------------------------------------------------
+    always @(posedge clk or posedge reset) begin
+        if (reset) begin
+            buy_q0  <= 8'd0;
+            buy_q1  <= 8'd0;
+            buy_q2  <= 8'd0;
+            buy_q3  <= 8'd0;
+            buy_q4  <= 8'd0;
+            buy_q5  <= 8'd0;
+            buy_q6  <= 8'd0;
+            buy_q7  <= 8'd0;
 
-    // cout_ab==1 → buy >= sell
-    assign match_flag = cout_ab;
-    assign spread     = match_flag ? diff_ab : diff_ba;
+            sell_q0 <= 8'hFF;
+            sell_q1 <= 8'hFF;
+            sell_q2 <= 8'hFF;
+            sell_q3 <= 8'hFF;
+            sell_q4 <= 8'hFF;
+            sell_q5 <= 8'hFF;
+            sell_q6 <= 8'hFF;
+            sell_q7 <= 8'hFF;
+        end else begin
+            // Shift older buy orders
+            buy_q7 <= buy_q6;
+            buy_q6 <= buy_q5;
+            buy_q5 <= buy_q4;
+            buy_q4 <= buy_q3;
+            buy_q3 <= buy_q2;
+            buy_q2 <= buy_q1;
+            buy_q1 <= buy_q0;
+            buy_q0 <= buy_price;
 
-endmodule
+            // Shift older sell orders
+            sell_q7 <= sell_q6;
+            sell_q6 <= sell_q5;
+            sell_q5 <= sell_q4;
+            sell_q4 <= sell_q3;
+            sell_q3 <= sell_q2;
+            sell_q2 <= sell_q1;
+            sell_q1 <= sell_q0;
+            sell_q0 <= sell_price;
+        end
+    end
 
 
-// =====================================================
-// 8-bit Ripple-Carry Adder
-// =====================================================
-module ripple_add8 (
-    input  wire [7:0] a,
-    input  wire [7:0] b,
-    input  wire       cin,
-    output wire [7:0] sum,
-    output wire       cout
-);
-    wire [7:0] c;
+    // -------------------------------------------------
+    // Find best bid (max) and best ask (min)
+    // -------------------------------------------------
+    always @(*) begin
+        best_bid = buy_q0;
+        if (buy_q1 > best_bid) best_bid = buy_q1;
+        if (buy_q2 > best_bid) best_bid = buy_q2;
+        if (buy_q3 > best_bid) best_bid = buy_q3;
+        if (buy_q4 > best_bid) best_bid = buy_q4;
+        if (buy_q5 > best_bid) best_bid = buy_q5;
+        if (buy_q6 > best_bid) best_bid = buy_q6;
+        if (buy_q7 > best_bid) best_bid = buy_q7;
 
-    full_adder fa0 (a[0], b[0], cin,  sum[0], c[0]);
-    full_adder fa1 (a[1], b[1], c[0], sum[1], c[1]);
-    full_adder fa2 (a[2], b[2], c[1], sum[2], c[2]);
-    full_adder fa3 (a[3], b[3], c[2], sum[3], c[3]);
-    full_adder fa4 (a[4], b[4], c[3], sum[4], c[4]);
-    full_adder fa5 (a[5], b[5], c[4], sum[5], c[5]);
-    full_adder fa6 (a[6], b[6], c[5], sum[6], c[6]);
-    full_adder fa7 (a[7], b[7], c[6], sum[7], cout);
-endmodule
+        best_ask = sell_q0;
+        if (sell_q1 < best_ask) best_ask = sell_q1;
+        if (sell_q2 < best_ask) best_ask = sell_q2;
+        if (sell_q3 < best_ask) best_ask = sell_q3;
+        if (sell_q4 < best_ask) best_ask = sell_q4;
+        if (sell_q5 < best_ask) best_ask = sell_q5;
+        if (sell_q6 < best_ask) best_ask = sell_q6;
+        if (sell_q7 < best_ask) best_ask = sell_q7;
+    end
 
+    // -------------------------------------------------
+    // Matching condition and trade price
+    // -------------------------------------------------
+    always @(*) begin
+        if (best_bid >= best_ask && best_bid != 0 && best_ask != 8'hFF)
+            match_flag = 1'b1;
+        else
+            match_flag = 1'b0;
 
-// =====================================================
-// Full Adder (1-bit)
-// =====================================================
-module full_adder (
-    input  wire a,
-    input  wire b,
-    input  wire cin,
-    output wire sum,
-    output wire cout
-);
-    assign sum  = a ^ b ^ cin;
-    assign cout = (a & b) | (a & cin) | (b & cin);
+        trade_price = (best_bid + best_ask) >> 1; // midpoint
+    end
 endmodule
