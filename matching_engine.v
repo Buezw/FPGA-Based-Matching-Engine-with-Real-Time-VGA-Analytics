@@ -1,19 +1,19 @@
 // =====================================================
-// Module: matching_engine_8
+// Module: matching_engine
 // =====================================================
 
-module matching_engine_8 (clk, reset, buy_price, sell_price,match_flag, trade_price, best_bid, best_ask);
+module matching_engine (clk, reset, buy_price, sell_price,match_siganl, trade_price, best_bid, best_ask);
     input clk;
     input reset;
     input [7:0] buy_price;
     input [7:0] sell_price;
 
-    output match_flag;
+    output match_siganl;
     output [7:0] trade_price;
     output [7:0] best_bid;
     output [7:0] best_ask;
 
-    reg match_flag;
+    reg match_siganl;
     reg [7:0] trade_price;
     reg [7:0] best_bid;
     reg [7:0] best_ask;
@@ -91,9 +91,9 @@ module matching_engine_8 (clk, reset, buy_price, sell_price,match_flag, trade_pr
 
     always @(*) begin
         if (best_bid >= best_ask && best_bid != 0 && best_ask != 8'hFF)
-            match_flag = 1'b1;
+            match_siganl = 1'b1;
         else
-            match_flag = 1'b0;
+            match_siganl = 1'b0;
 
         trade_price = (best_bid + best_ask) / 2
     end

@@ -2,15 +2,15 @@
 // Module: display_hex
 // =====================================================
 module display_hex (buy_price,sell_price,spread_now,trade_count, 
-    state, halt_flag, match_flag, HEX0,HEX1, HEX2, HEX3, HEX4, HEX5, LEDR);
+    state, halt_signal, match_siganl, HEX0,HEX1, HEX2, HEX3, HEX4, HEX5, LEDR);
 
     input [7:0] buy_price;
     input [7:0] sell_price;
     input [7:0] spread_now;
     input [7:0] trade_count;
     input [1:0] state;
-    input halt_flag;
-    input match_flag;
+    input halt_signal;
+    input match_siganl;
 
     output [6:0] HEX0, HEX1, HEX2, HEX3, HEX4, HEX5;
     output [9:0] LEDR;
@@ -34,10 +34,10 @@ module display_hex (buy_price,sell_price,spread_now,trade_count,
     seg7 h5 (spread_hi, HEX5);
 
     // LED Indicators
-    assign LEDR[0] = match_flag;       // blink on trade
-    assign LEDR[1] = halt_flag;        // system halt
-    assign LEDR[3:2] = state;            // FSM state bits
-    assign LEDR[9:4] = trade_count[5:0]; // trade counter
+    assign LEDR[0] = match_siganl;
+    assign LEDR[1] = halt_signal;  
+    assign LEDR[3:2] = state;
+    assign LEDR[9:4] = trade_count[5:0];
 
 endmodule
 
@@ -65,7 +65,7 @@ module seg7 (
             4'hD: seg = 7'b0100001;
             4'hE: seg = 7'b0000110;
             4'hF: seg = 7'b0001110;
-            default: seg = 7'b1111111; // blank
+            default: seg = 7'b1111111;
         endcase
     end
 endmodule
