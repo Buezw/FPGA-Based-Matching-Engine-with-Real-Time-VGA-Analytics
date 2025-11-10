@@ -41,11 +41,10 @@ module display_hex (buy_price,sell_price,spread_now,trade_count,
 
 endmodule
 
-
-module seg7 (
-    input [3:0] hex,
-    output reg [6:0] seg
-);
+module seg7 (hex, seg);
+    input [3:0] hex;
+    output reg [6:0] seg;
+    
     always @(*) 
     begin
         case (hex)
