@@ -1,22 +1,18 @@
 onerror {resume}
 quietly WaveActivateNextPane {} 0
 
-# === 顶层信号 (top-level) ===
+# 顶层 (top-level)
 add wave -noupdate -label KEY -radix binary /testbench/KEY
 add wave -noupdate -label SW  -radix binary -expand /testbench/SW
 
-# === 输入价格 (inputs) ===
+# 输入 (inputs)
 add wave -noupdate -divider inputs
 add wave -noupdate -label buy_price  -radix unsigned /testbench/buy_price
 add wave -noupdate -label sell_price -radix unsigned /testbench/sell_price
 
-# === 被测模块输出 (outputs) ===
+# 输出 (output)
 add wave -noupdate -divider spread
-add wave -noupdate -label spread_now -radix unsigned /testbench/U1/spread_now
-
-# （可选）若模块内部有保持寄存器/使能门控信号，可在此追加观察
-# add wave -noupdate -label spread_reg -radix unsigned /testbench/U1/spread_reg
-# add wave -noupdate -label update_en  -radix binary   /testbench/U1/update_en
+add wave -noupdate -label spread -radix unsigned /testbench/U1/spread
 
 TreeUpdate [SetDefaultTree]
 WaveRestoreCursors {{Cursor 1} {1000 ns} 0}

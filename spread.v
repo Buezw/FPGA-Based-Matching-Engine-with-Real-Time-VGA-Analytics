@@ -2,7 +2,7 @@
 // Module: Spread Calculator
 // =====================================================
 
-module spread_calculator (clk, reset, match_siganl, enable_count, buy_price, sell_price, spread);
+module spread (clk, reset, match_siganl, enable_count, buy_price, sell_price, spread);
 
     input clk;              
     input reset;            

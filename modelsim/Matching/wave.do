@@ -1,27 +1,21 @@
 onerror {resume}
 quietly WaveActivateNextPane {} 0
 
-# === 顶层信号 (top-level) ===
+# 顶层 (top-level)
 add wave -noupdate -label KEY -radix binary /testbench/KEY
 add wave -noupdate -label SW  -radix binary -expand /testbench/SW
 
-# === 输入价格流 (inputs) ===
+# 输入 (inputs)
 add wave -noupdate -divider inputs
 add wave -noupdate -label buy_price  -radix unsigned /testbench/buy_price
 add wave -noupdate -label sell_price -radix unsigned /testbench/sell_price
 
-# === 被测模块输出 (outputs) ===
+# 输出 (outputs)
 add wave -noupdate -divider matching_engine
 add wave -noupdate -label best_bid    -radix unsigned /testbench/U1/best_bid
 add wave -noupdate -label best_ask    -radix unsigned /testbench/U1/best_ask
-add wave -noupdate -label match_flag  -radix binary   /testbench/U1/match_flag
+add wave -noupdate -label match_siganl -radix binary  /testbench/U1/match_siganl
 add wave -noupdate -label trade_price -radix unsigned /testbench/U1/trade_price
-
-# （可选）内部窗口/寄存器，如存在可取消注释以观察 (optional internal probes)
-# add wave -noupdate -label buy_win0 -radix unsigned /testbench/U1/buy_window[0]
-# add wave -noupdate -label buy_win7 -radix unsigned /testbench/U1/buy_window[7]
-# add wave -noupdate -label sell_win0 -radix unsigned /testbench/U1/sell_window[0]
-# add wave -noupdate -label sell_win7 -radix unsigned /testbench/U1/sell_window[7]
 
 TreeUpdate [SetDefaultTree]
 WaveRestoreCursors {{Cursor 1} {1000 ns} 0}

@@ -95,6 +95,6 @@ module matching_engine (clk, reset, buy_price, sell_price,match_siganl, trade_pr
         else
             match_siganl = 1'b0;
 
-        trade_price = (best_bid + best_ask) / 2
+        trade_price = (best_bid + best_ask) / 2;
     end
 endmodule
