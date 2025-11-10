@@ -2,7 +2,7 @@
 // Module: display_hex
 // =====================================================
 module display_hex (buy_price,sell_price,spread_now,trade_count, 
-    state, halt_signal, match_siganl, HEX0,HEX1, HEX2, HEX3, HEX4, HEX5, LEDR);
+    state, halt_signal, match_signal, HEX0,HEX1, HEX2, HEX3, HEX4, HEX5, LEDR);
 
     input [7:0] buy_price;
     input [7:0] sell_price;
@@ -10,7 +10,7 @@ module display_hex (buy_price,sell_price,spread_now,trade_count,
     input [7:0] trade_count;
     input [1:0] state;
     input halt_signal;
-    input match_siganl;
+    input match_signal;
 
     output [6:0] HEX0, HEX1, HEX2, HEX3, HEX4, HEX5;
     output [9:0] LEDR;
@@ -18,14 +18,19 @@ module display_hex (buy_price,sell_price,spread_now,trade_count,
     // BCD
     wire [3:0] buy_lo, buy_hi, sell_lo, sell_hi, spread_lo, spread_hi;
 
+    // Buy Price
     assign buy_lo = buy_price[3:0];
     assign buy_hi = buy_price[7:4];
+
+    // Sell Price
     assign sell_lo = sell_price[3:0];
     assign sell_hi = sell_price[7:4];
+
+    // Spread
     assign spread_lo = spread_now[3:0];
     assign spread_hi = spread_now[7:4];
 
-    //Dispaly on HEX
+    // Display on HEX
     seg7 h0 (buy_lo, HEX0);
     seg7 h1 (buy_hi, HEX1);
     seg7 h2 (sell_lo, HEX2);
@@ -34,7 +39,7 @@ module display_hex (buy_price,sell_price,spread_now,trade_count,
     seg7 h5 (spread_hi, HEX5);
 
     // LED Indicators
-    assign LEDR[0] = match_siganl;
+    assign LEDR[0] = match_signal;
     assign LEDR[1] = halt_signal;  
     assign LEDR[3:2] = state;
     assign LEDR[9:4] = trade_count[5:0];

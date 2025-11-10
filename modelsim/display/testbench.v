@@ -6,7 +6,7 @@ module testbench ();
     parameter CLOCK_PERIOD = 10; // 100MHz -> 10ns
 
     // ==== 与你示例一致的外设风格 (same style as your example) ====
-    // SW[0]=match_siganl, SW[1]=halt_signal, SW[3:2]=state[1:0]
+    // SW[0]=match_signal, SW[1]=halt_signal, SW[3:2]=state[1:0]
     reg  [3:0] SW;
     reg  [0:0] KEY;  // KEY[0]=clk (仅为保持风格，display_hex 不用时钟)
 
@@ -38,8 +38,8 @@ module testbench ();
         // 逐步改变价格与状态，观察 HEX/LEDR 显示
         #30  buy_price  <= 8'd75;  sell_price <= 8'd70;  spread_now <= 8'd5;   // 买>卖
         #30  buy_price  <= 8'd66;  sell_price <= 8'd80;  spread_now <= 8'd14;  // 卖>买
-        #30  SW[0] <= 1'b1;                     // match_siganl=1
-        #40  SW[0] <= 1'b0;                     // match_siganl=0
+        #30  SW[0] <= 1'b1;                     // match_signal=1
+        #40  SW[0] <= 1'b0;                     // match_signal=0
         #40  SW[3:2] <= 2'b01;                  // state=01（例如 MATCH）
         #40  SW[3:2] <= 2'b10;                  // state=10
         #40  SW[1]   <= 1'b1;                   // halt_signal=1（停机）
@@ -53,7 +53,7 @@ module testbench ();
         #60  buy_price <= 8'd81; sell_price <= 8'd55; spread_now <= 8'd26;
         #60  buy_price <= 8'd52; sell_price <= 8'd86; spread_now <= 8'd34;
 
-        #200 $finish;
+        $finish;
     end
 
     // ==== 例化被测模块 (instantiate UUT) ====
@@ -65,7 +65,7 @@ module testbench ();
         .trade_count   (trade_count),
         .state         (SW[3:2]),
         .halt_signal   (SW[1]),
-        .match_siganl  (SW[0]),
+        .match_signal  (SW[0]),
         .HEX0(HEX0), .HEX1(HEX1), .HEX2(HEX2),
         .HEX3(HEX3), .HEX4(HEX4), .HEX5(HEX5),
         .LEDR(LEDR)
