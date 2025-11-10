@@ -17,8 +17,21 @@ module spread (clk, reset, match_siganl, enable_count, buy_price, sell_price, sp
     begin
         if (reset)
             spread <= 8'd0;
-        else if (enable_count && match_siganl)
+        else if (enable_count && match_siganl) 
+        begin
+            if (buy_price > sell_price)
+            begin
             spread <= buy_price - sell_price; 
+            end
+            else if (sell_price > buy_price)
+            begin
+            spread <= sell_price - buy_price;
+            end
+            else
+            begin
+            spread <= 8'd0;
+            end
+        end
     end
 
 endmodule
