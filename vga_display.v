@@ -23,8 +23,9 @@ module vga_display(clk_25mhz, video_on, h_cnt, v_cnt,
     // map prices to vertical positions
     wire [9:0] y_buy;
     wire [9:0] y_sell;
-    assign y_buy  = 480 - buy_price  * 2;
-    assign y_sell = 480 - sell_price * 2;
+    assign y_buy  = 10'd480 - {buy_price, 1'b0};
+    assign y_sell = 10'd480 - {sell_price, 1'b0};
+
 
     // detect if current pixel near line
     wire buy_line;

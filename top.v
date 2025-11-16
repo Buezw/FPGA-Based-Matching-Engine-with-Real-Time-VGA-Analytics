@@ -76,16 +76,9 @@ module top (
     // ==============================
     // 2. Matching Engine
     // ==============================
-    matching_engine engine (
-        .clk(clk_50),
-        .reset(reset),
-        .buy_price(buy_price),
-        .sell_price(sell_price),
-        .match_siganl(match_signal),
-        .trade_price(trade_price),
-        .best_bid(best_bid),
-        .best_ask(best_ask)
-    );
+    matching_engine engine(clk, reset, buy_price, sell_price, match_signal,
+                        trade_price, best_bid, best_ask);
+
 
     // ==============================
     // 3. Controller FSM
@@ -93,7 +86,7 @@ module top (
     controller_fsm controller (
         .clk(clk_50),
         .reset(reset),
-        .match_flag(match_signal),
+        .match_signal(match_signal),
         .halt_flag(halt_signal),
         .state(state),
         .enable_count(enable_count)
@@ -117,7 +110,7 @@ module top (
     spread spread_calc (
         .clk(clk_50),
         .reset(reset),
-        .match_siganl(match_signal),
+        .match_signal(match_signal),
         .enable_count(enable_count),
         .buy_price(buy_price),
         .sell_price(sell_price),
