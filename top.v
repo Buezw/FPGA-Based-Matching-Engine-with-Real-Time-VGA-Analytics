@@ -10,7 +10,7 @@ module top (
 
     // === VGA Output ===
     VGA_R, VGA_G, VGA_B,
-    VGA_HS, VGA_VS
+    VGA_HS, VGA_VS, KEY4
 );
 
     input  CLOCK_50;
@@ -25,6 +25,8 @@ module top (
     output [3:0] VGA_B;
     output VGA_HS;
     output VGA_VS;
+
+    input KEY4;
 
     // ==============================
     // Basic clock & reset
@@ -70,7 +72,8 @@ module top (
         .clk(clk_50),
         .reset(reset),
         .buy_price(buy_price),
-        .sell_price(sell_price)
+        .sell_price(sell_price),
+        .KEY4(KEY4)
     );
 
     // ==============================
