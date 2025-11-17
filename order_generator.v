@@ -8,7 +8,7 @@ module order_generator (clk, reset, buy_price, sell_price, KEY4);
     // Pseudo-Random Shift Register, has a sequence of 2^15 
     reg [15:0] lfsr1;
     reg [15:0] lfsr2;
-    reg [20:0] div;
+    reg [25:0] div;
 
     reg [1:0] key4_sync;
 
