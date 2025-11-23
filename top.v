@@ -76,38 +76,5 @@ module top (
     // 7. 显示: (buy, sell, spread, trade, state, halt, match, HEX0...HEX5, LEDR)
     display_hex display_unit(buy_price, sell_price, spread_now, trade_count, state, halt_signal, match_signal, HEX0, HEX1, HEX2, HEX3, HEX4, HEX5, LEDR);
 
-    // --- 音频模块 (全部使用位置调用) ---
-
-    // 8. 触发器: (clk, reset, match_signal, play_pulse)
-    audio_trigger u_trig(CLOCK_50, reset, match_signal, play_pulse);
-
-    // 9. 音调生成器: (clk, reset, play_trigger, audio_out_allowed, write_out, left_out, right_out)
-    my_tone u_tone(CLOCK_50, reset, play_pulse, audio_allowed, audio_write, aud_left, aud_right);
-
-    // 10. 芯片配置: (CLOCK_50, reset, FPGA_I2C_SCLK, FPGA_I2C_SDAT)
-    avconf u_conf(CLOCK_50, reset, I2C_SCLK, I2C_SDAT);
-
-    // 11. 音频控制器
-    // 警告：audio_controller 端口太多，位置调用非常容易出错。
-    // 这里我使用“命名调用”(.port)以保证安全。如果您非常确定要用位置调用，
-    // 请确保您的 audio_controller.v 端口顺序与手册完全一致。
-    audio_controller #( .AUDIO_DATA_WIDTH(32) ) u_ctrl (
-        .CLOCK_50(CLOCK_50), 
-        .reset(reset),
-        .clear_audio_out_memory(1'b0), 
-        .clear_audio_in_memory(1'b0),
-        .write_audio_out(audio_write), 
-        .audio_out_allowed(audio_allowed),
-        .left_channel_audio_out(aud_left), 
-        .right_channel_audio_out(aud_right),
-        .AUD_ADCDAT(AUD_ADCDAT), 
-        .AUD_DACDAT(AUD_DACDAT),
-        .AUD_BCLK(AUD_BCLK), 
-        .AUD_ADCLRCK(AUD_ADCLRCK), 
-        .AUD_DACLRCK(AUD_DACLRCK), 
-        .I2C_SDAT(I2C_SDAT), 
-        .I2C_SCLK(I2C_SCLK),
-        .AUD_XCK(AUD_XCK)
-    );
-
+   
 endmodule
