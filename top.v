@@ -40,8 +40,6 @@ module top (
     wire clk_50;
     wire slow_clk;
     assign clk_50 = CLOCK_50;
-    assign reset = ~KEY[0];
-
 
     // 交易信号
     wire [7:0] buy_price, sell_price, trade_price, spread_now, trade_count, best_bid, best_ask;
@@ -159,3 +157,4 @@ order_generator generator(clk_50, reset, buy_price, sell_price, KEY, slow_clk);
 
 
 endmodule
+
