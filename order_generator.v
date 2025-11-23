@@ -30,18 +30,10 @@ module order_generator (clk, reset, buy_price, sell_price, KEY, slow_clk);
     assign slow_clk = div[25];
 
 
-    always @(posedge slow_clk or posedge reset) begin
-        if (reset) 
-        begin
-            key4_sync <= 2'b11;      
-        end 
-        else 
-        begin
-            key4_sync <= {key4_sync[0], ~KEY[3]};
-        end
-    end
-
-    wire key4_press = (key4_sync[1] == 1'b1) && (key4_sync[0] == 1'b0);
+    always @(posedge KEY[3]) begin    
+            lfsr1 <= ({lfsr1[7:0], div[7:0]} == 16'h0000) ? 16'h0001 : {lfsr1[7:0], div[7:0]};
+            lfsr2 <= ({lfsr2[7:0], div[15:8]} == 16'h0000) ? 16'h0001 : {lfsr2[7:0], div[15:8]};
+    end 
 
 
     always @(posedge slow_clk or posedge reset) begin
@@ -49,12 +41,6 @@ module order_generator (clk, reset, buy_price, sell_price, KEY, slow_clk);
             lfsr1 <= 16'hACE1;
             lfsr2 <= 16'h3C21;
         end 
-
-        else if (key4_press)
-        begin
-            lfsr1 <= ({lfsr1[7:0], div[7:0]} == 16'h0000) ? 16'h0001 : {lfsr1[7:0], div[7:0]};
-            lfsr2 <= ({lfsr2[7:0], div[15:8]} == 16'h0000) ? 16'h0001 : {lfsr2[7:0], div[15:8]};
-        end
         else 
         begin
             // lfsr1 shift
@@ -100,4 +86,3 @@ module order_generator (clk, reset, buy_price, sell_price, KEY, slow_clk);
     assign sell_price = 8'd55 + lfsr2[4:0];
 
 endmodule
-
