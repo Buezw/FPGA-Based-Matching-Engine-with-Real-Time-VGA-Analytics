@@ -1,9 +1,10 @@
-module order_generator (clk, reset, buy_price, sell_price, KEY);
+module order_generator (clk, reset, buy_price, sell_price, KEY, slow_clk);
     input clk;         
     input reset;   
     input [3:0] KEY;    
     output [7:0] buy_price;  
     output [7:0] sell_price; 
+    output slow_clk;
     
     // Pseudo-Random Shift Register, has a sequence of 2^15 
     reg [15:0] lfsr1;
@@ -26,7 +27,7 @@ module order_generator (clk, reset, buy_price, sell_price, KEY);
         end
     end
 
-    wire slow_clk = div[25];
+    assign slow_clk = div[25];
 
 
     always @(posedge slow_clk or posedge reset) begin
@@ -99,3 +100,4 @@ module order_generator (clk, reset, buy_price, sell_price, KEY);
     assign sell_price = 8'd55 + lfsr2[4:0];
 
 endmodule
+
