@@ -41,7 +41,7 @@ module top (CLOCK_50, KEY, HEX0, HEX1, HEX2, HEX3, HEX4, HEX5, LEDR, VGA_R, VGA_
     wire halt_signal;
     wire enable_count;
 
-    order_generator generator(clk_50, reset, buy_price, sell_price, KEY[3]);
+    order_generator generator(clk_50, reset, buy_price, sell_price, KEY);
 
     matching_engine engine(clk_50, reset, buy_price, sell_price, match_signal, trade_price, best_bid, best_ask);
 
