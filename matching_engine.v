@@ -1,5 +1,3 @@
-// Module: matching_engine
-
 module matching_engine (clk, reset, buy_price, sell_price,match_signal, trade_price, best_bid, best_ask);
     input clk;
     input reset;
@@ -87,12 +85,20 @@ module matching_engine (clk, reset, buy_price, sell_price,match_signal, trade_pr
         if (sell_q7 < best_ask) best_ask = sell_q7;
     end
 
-    always @(*) begin
-        if (best_bid >= best_ask && best_bid != 0 && best_ask != 8'hFF)
-            match_signal = 1'b1;
-        else
-            match_signal = 1'b0;
 
+    always @(posedge clk or posedge reset) begin
+        if (reset)
+            match_signal <= 1'b0;
+        else begin
+            if (best_bid >= best_ask && best_bid != 0 && best_ask != 8'hFF)
+                match_signal <= 1'b1;
+            else
+                match_signal <= 1'b0;
+        end
+    end
+
+
+    always @(*) begin
         trade_price = (best_bid + best_ask) / 2;
     end
 endmodule
