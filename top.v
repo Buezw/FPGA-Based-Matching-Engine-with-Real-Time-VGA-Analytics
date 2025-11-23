@@ -56,14 +56,5 @@ module top (CLOCK_50, KEY, HEX0, HEX1, HEX2, HEX3, HEX4, HEX5, LEDR, VGA_R, VGA_
     display_hex display_unit(buy_price, sell_price, spread_now, trade_count, state, halt_signal, match_signal,
                              HEX0, HEX1, HEX2, HEX3, HEX4, HEX5, LEDR);
 
-    wire [9:0] h_cnt;
-    wire [9:0] v_cnt;
-    wire video_on;
-
-    vga_controller vga_ctrl(clk_25, reset, h_cnt, v_cnt, VGA_HS, VGA_VS, video_on);
-
-    vga_display vga_disp(clk_25, video_on, h_cnt, v_cnt,
-                         buy_price, sell_price, trade_count, spread_now, halt_signal,
-                         VGA_R, VGA_G, VGA_B);
 
 endmodule

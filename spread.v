@@ -12,23 +12,22 @@ module spread (clk, reset, match_signal, enable_count, buy_price, sell_price, sp
     
     output [7:0] spread;    
     reg [7:0] spread;       
-    always @(posedge clk or posedge reset) 
-    begin
+    always @(posedge clk or posedge reset) begin
         if (reset)
             spread <= 8'd0;
-        else if (enable_count && match_signal) 
-        begin
-            if (buy_price > sell_price)
-            begin
-            spread <= buy_price - sell_price; 
+        else begin
+
+            if (sell_price == 8'hFF || buy_price == 8'd0) begin
+                spread <= 8'd0;
             end
-            else if (sell_price > buy_price)
-            begin
-            spread <= sell_price - buy_price;
+
+            else if (buy_price >= sell_price) begin
+                spread <= buy_price - sell_price; 
+
             end
-            else
-            begin
-            spread <= 8'd0;
+            else begin
+
+                spread <= sell_price - buy_price; 
             end
         end
     end
