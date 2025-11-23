@@ -1,10 +1,10 @@
-module order_generator (clk, reset, buy_price, sell_price, KEY4);
+module order_generator (clk, reset, buy_price, sell_price, KEY);
     input clk;         
-    input reset;       
+    input reset;   
+    input [3:0] KEY;    
     output [7:0] buy_price;  
     output [7:0] sell_price; 
-    input KEY4;
-
+    
     // Pseudo-Random Shift Register, has a sequence of 2^15 
     reg [15:0] lfsr1;
     reg [15:0] lfsr2;
@@ -14,6 +14,7 @@ module order_generator (clk, reset, buy_price, sell_price, KEY4);
 
     // Clock divider
     always @(posedge clk or posedge reset) 
+
     begin
         if (reset) 
         begin
@@ -35,7 +36,7 @@ module order_generator (clk, reset, buy_price, sell_price, KEY4);
         end 
         else 
         begin
-            key4_sync <= {key4_sync[0], KEY4};
+            key4_sync <= {key4_sync[0], ~KEY[3]};
         end
     end
 
