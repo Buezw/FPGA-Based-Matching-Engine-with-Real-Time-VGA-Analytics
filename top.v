@@ -20,13 +20,12 @@ module top (CLOCK_50, KEY, HEX0, HEX1, HEX2, HEX3, HEX4, HEX5, LEDR, VGA_R, VGA_
     
     wire clk_50;
     wire reset;
-    wire KEY4;
 
     assign clk_50 = CLOCK_50;
     assign reset = ~KEY[0];
-    assign KEY4 = ~KEY[3];
 
     wire clk_25;
+    wire slow_clk;
     clk_div2 div25(clk_50, reset, clk_25);
 
     wire [7:0] buy_price;
@@ -43,27 +42,18 @@ module top (CLOCK_50, KEY, HEX0, HEX1, HEX2, HEX3, HEX4, HEX5, LEDR, VGA_R, VGA_
     wire halt_signal;
     wire enable_count;
 
-    order_generator generator(clk_50, reset, buy_price, sell_price, KEY4);
+    order_generator generator(clk_50, reset, buy_price, sell_price, KEY, slow_clk);
 
     matching_engine engine(clk_50, reset, buy_price, sell_price, match_signal, trade_price, best_bid, best_ask);
 
     controller_fsm controller(clk_50, reset, match_signal, halt_signal, state, enable_count);
 
-    counter trade_counter(clk_50, reset, match_signal, enable_count, trade_count, halt_signal);
+    counter trade_counter(slow_clk, reset, match_signal, enable_count, trade_count, halt_signal);
 
     spread spread_calc(clk_50, reset, match_signal, enable_count, buy_price, sell_price, spread_now);
 
     display_hex display_unit(buy_price, sell_price, spread_now, trade_count, state, halt_signal, match_signal,
                              HEX0, HEX1, HEX2, HEX3, HEX4, HEX5, LEDR);
 
-    wire [9:0] h_cnt;
-    wire [9:0] v_cnt;
-    wire video_on;
-
-    vga_controller vga_ctrl(clk_25, reset, h_cnt, v_cnt, VGA_HS, VGA_VS, video_on);
-
-    vga_display vga_disp(clk_25, video_on, h_cnt, v_cnt,
-                         buy_price, sell_price, trade_count, spread_now, halt_signal,
-                         VGA_R, VGA_G, VGA_B);
 
 endmodule
