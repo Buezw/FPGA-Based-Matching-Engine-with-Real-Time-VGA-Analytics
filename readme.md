@@ -37,9 +37,9 @@
   * `HEX5:HEX4 = spread_now`
 * LED 指示：
 
-  * `LEDR[0] = match_flag`（有成交就亮/闪）
-  * `LEDR[1] = halt_flag`（到阈值停机）
-  * `LEDR[3:2] = state`（FSM 状态位）
+  * `LEDR[0] = match_flag`
+  * `LEDR[1] = halt_flag`
+  * `LEDR[3:2] = state`
   * `LEDR[9:4] = trade_count[5:0]`
 
 ## 7) 顶层集成（`system_top.v`）
