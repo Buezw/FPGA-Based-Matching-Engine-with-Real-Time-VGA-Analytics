@@ -12,9 +12,18 @@ module spread (clk, reset, match_signal, enable_count, buy_price, sell_price, sp
 
     wire [7:0] calculated_spread;
 
-    assign calculated_spread = (sell_price == 8'hFF || buy_price == 8'd0) ? 8'd0 :
-                               (buy_price >= sell_price) ? (buy_price - sell_price) :
-                               (sell_price - buy_price);
+    always @* begin
+        if (sell_price == 8'hFF || buy_price == 8'd0) begin
+            calculated_spread = 8'd0;
+        end 
+        else if (buy_price >= sell_price) 
+        begin
+            calculated_spread = buy_price - sell_price;
+        end 
+        else begin
+            calculated_spread = sell_price - buy_price;
+        end
+    end
 
     always @(posedge clk or posedge reset) 
     begin
