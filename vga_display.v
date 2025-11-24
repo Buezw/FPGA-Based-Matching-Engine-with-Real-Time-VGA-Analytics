@@ -42,12 +42,40 @@ module vga_display(clk_25mhz, video_on, h_cnt, v_cnt,
     wire in_display;
     assign in_display = video_on && !halt_signal;
 
-    assign R = (in_display && (sell_line || spread_bar)) ? 4'hF :
-               (halt_signal ? 4'h8 : 4'h0);
+    always @* begin
+        if (halt_signal) begin
+            R = 4'h8; 
+        end 
+        else if (in_display && (sell_line || spread_bar)) begin
+            R = 4'hF; // Full Red
+        end 
+        else begin
+            R = 4'h0; 
+        end
+        
 
-    assign G = (in_display && (buy_line || progress_bar)) ? 4'hF :
-               (halt_signal ? 4'h8 : 4'h0);
+        if (halt_signal) begin
+            G = 4'h8; 
 
-    assign B = (halt_signal ? 4'hA : 4'h0);
+        end 
+        else if (in_display && (buy_line || progress_bar)) 
+        begin
+            G = 4'hF; // Full Green
 
+        end 
+        else 
+        begin
+            G = 4'h0; 
+        end
+
+
+        if (halt_signal) 
+        begin
+            B = 4'hA; // A bit of blue
+        end else 
+        begin
+            B = 4'h0; // none of that
+        end
+
+    end
 endmodule
