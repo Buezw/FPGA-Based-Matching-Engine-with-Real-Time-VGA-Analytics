@@ -1,15 +1,31 @@
 module vga_trend_display(
-    input clk,
-    input reset,
-    input video_on,
-    input [9:0] h_cnt, //(0-639)
-    input [9:0] v_cnt, //(0-479)
-    input [7:0] trade_price,
-    input match_signal,
-    input [7:0] spread, 
-    input [7:0] trade_count,
-    output [3:0] R, G, B
+    clk, 
+    reset, 
+    video_on, 
+    h_cnt, 
+    v_cnt, 
+    trade_price, 
+    match_signal, 
+    spread, 
+    trade_count, 
+    R, 
+    G, 
+    B
 );
+
+    input clk;
+    input reset;
+    input video_on;
+    input [9:0] h_cnt;
+    input [9:0] v_cnt;
+    input [7:0] trade_price;
+    input match_signal;
+    input [7:0] spread;
+    input [7:0] trade_count;
+    output [3:0] R;
+    output [3:0] G;
+    output [3:0] B;
+
 
     reg [7:0] price_history [0:639];
     integer i;
@@ -70,20 +86,35 @@ module vga_trend_display(
                            (v_cnt >= y_pos - 3 && v_cnt <= y_pos + 3);
 
     //color
-    assign R = !video_on ? 4'h0 : 
-               (is_scale      ? 4'h7 :  // 灰
-                is_spread_bar ? 4'hF :  // 红
-                4'h0);
-
-    assign G = !video_on ? 4'h0 : 
-               (is_scale      ? 4'h7 :  // 灰
-                is_trend_line ? 4'hF :  // 绿
-                4'h0);
-
-    assign B = !video_on ? 4'h0 : 
-               (is_trade_bar  ? 4'hF :  // 蓝
-                is_scale      ? 4'h7 :  // 灰
-                4'h0);
-
+    always @* begin
+    
+            R = 4'h0;
+            G = 4'h0;
+            B = 4'h0;
+    
+    
+        if (video_on) begin
+            if (is_scale) begin
+                R = 4'h7;     
+            end else if (is_spread_bar) begin
+                R = 4'hF;     
+            end
+    
+    
+            if (is_scale) begin
+                G = 4'h7;       
+            end else if (is_trend_line) begin
+                G = 4'hF;      
+            end
+    
+            if (is_trade_bar) begin
+                B = 4'hF;      
+            end else if (is_scale) begin
+                B = 4'h7;      
+            end
+            
+        end
+    end
 
 endmodule
+
