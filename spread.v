@@ -16,12 +16,11 @@ module spread (clk, reset, match_signal, enable_count, buy_price, sell_price, sp
                                (buy_price >= sell_price) ? (buy_price - sell_price) :
                                (sell_price - buy_price);
 
-    // 2. 时序逻辑：仅在发生撮合（成交）时更新 spread 寄存器
     always @(posedge clk or posedge reset) 
     begin
         if (reset)
             spread <= 8'd0;
-        // 只有当 enable_count AND match_signal 均为高时才更新
+        // enable_count && match_signal
         else if (match_signal && enable_count) begin
             spread <= calculated_spread;
         end else begin
