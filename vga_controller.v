@@ -1,5 +1,3 @@
-// Module: VGA Controller (old Verilog style)
-
 module vga_controller(clk_25mhz, reset, h_cnt, v_cnt, hsync, vsync, video_on);
 
     input clk_25mhz;
@@ -15,13 +13,13 @@ module vga_controller(clk_25mhz, reset, h_cnt, v_cnt, hsync, vsync, video_on);
 
     // VGA timing parameters
     parameter H_VISIBLE = 640;
-    parameter H_FRONT   = 16;
-    parameter H_SYNC    = 96;
-    parameter H_BACK    = 48;
+    parameter H_FRONT = 16;
+    parameter H_SYNC = 96;
+    parameter H_BACK = 48;
     parameter V_VISIBLE = 480;
-    parameter V_FRONT   = 10;
-    parameter V_SYNC    = 2;
-    parameter V_BACK    = 33;
+    parameter V_FRONT = 10;
+    parameter V_SYNC = 2;
+    parameter V_BACK = 33;
 
     wire h_end;
     wire v_end;
@@ -51,8 +49,25 @@ module vga_controller(clk_25mhz, reset, h_cnt, v_cnt, hsync, vsync, video_on);
     end
 
     // Sync and visible area
-    assign hsync = ~(h_cnt >= H_VISIBLE + H_FRONT && h_cnt < H_VISIBLE + H_FRONT + H_SYNC);
-    assign vsync = ~(v_cnt >= V_VISIBLE + V_FRONT && v_cnt < V_VISIBLE + V_FRONT + V_SYNC);
-    assign video_on = (h_cnt < H_VISIBLE && v_cnt < V_VISIBLE);
+    always @* 
+    begin
+    if (h_cnt >= H_VISIBLE + H_FRONT && h_cnt < H_VISIBLE + H_FRONT + H_SYNC) begin
+        hsync = 1'b0;
+    end else begin
+        hsync = 1'b1;
+    end
+
+    if (v_cnt >= V_VISIBLE + V_FRONT && v_cnt < V_VISIBLE + V_FRONT + V_SYNC) begin
+        vsync = 1'b0;
+    end else begin
+        vsync = 1'b1;
+    end
+
+    if (h_cnt < H_VISIBLE && v_cnt < V_VISIBLE) begin
+        video_on = 1'b1;
+    end else begin
+        video_on = 1'b0;
+        end
+    end
 
 endmodule
