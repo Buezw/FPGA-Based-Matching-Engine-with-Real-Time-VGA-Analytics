@@ -11,9 +11,9 @@ module top (
     output [7:0] VGA_B,
     output VGA_HS,
     output VGA_VS,
-    output VGA_CLK,      // 必须：像素时钟
-    output VGA_BLANK_N,  // 必须：消隐信号
-    output VGA_SYNC_N    // 必须：同步信号
+    output VGA_CLK,      //clk
+    output VGA_BLANK_N,  //disappear
+    output VGA_SYNC_N    //sync
 );
 
     wire reset = ~KEY[0];
@@ -79,3 +79,4 @@ module top (
         .B(vga_b_4bit)
     );
 endmodule
+
