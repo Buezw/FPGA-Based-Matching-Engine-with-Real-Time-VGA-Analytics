@@ -37,7 +37,7 @@ module order_generator (clk, reset, buy_price, sell_price, KEY, slow_clk);
 
     always @(posedge slow_clk or posedge reset) begin
         if (reset) begin
-            // Asynchronous Reset
+            // Reset
             lfsr1 <= 16'hACE1;
             lfsr2 <= 16'h3C21;
         end 
@@ -46,7 +46,7 @@ module order_generator (clk, reset, buy_price, sell_price, KEY, slow_clk);
             lfsr2 <= ({lfsr2[7:0], div[15:8]} == 16'h0000) ? 16'h0001 : {lfsr2[7:0], div[15:8]};
         end 
         else begin
-            // Synchronous Shift 
+            // Shift 
             lfsr1 <= {lfsr1[14:0], (lfsr1[15] ^ lfsr1[13] ^ lfsr1[12] ^ lfsr1[10])};
             lfsr2 <= {lfsr2[14:0], (lfsr2[15] ^ lfsr2[14] ^ lfsr2[12] ^ lfsr2[3])};
         end
