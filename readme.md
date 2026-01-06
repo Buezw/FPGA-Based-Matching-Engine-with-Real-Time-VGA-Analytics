@@ -1,52 +1,63 @@
+# FPGA-Based Matching Engine with Real-Time VGA Analytics
+
+An high-performance hardware implementation of a financial matching engine designed in Verilog. This system simulates a high-frequency trading (HFT) environment, processes orders through a sliding window matching algorithm, and provides real-time data visualization via VGA.
 
 
-## 1) 价格产生（`order_generator.v`）
 
-* 用两个 16-bit LFSR 生成伪随机数（内部有 `div` 分频，让数值变化更慢，便于板上观察）。
-* 映射为 8-bit 价格：`buy_price = 50 + lfsr1[4:0]`、`sell_price = 55 + lfsr2[4:0]`（范围大致 50–81、55–86）。
+## 1. Project Overview
+The system generates a stream of pseudo-random market prices, identifies trading opportunities based on a 8-depth order book window, and visualizes the results.
 
-## 2) 撮合引擎（`matching_engine_8.v`）
+### Key Features:
+* **Hardware Order Generation:** Uses dual 16-bit Linear Feedback Shift Registers (LFSR) with frequency division for stable price simulation.
+* **Best-Bid-Best-Offer (BBO) Logic:** Real-time calculation of $max(Buy\_Window)$ and $min(Sell\_Window)$.
+* **VGA Analytics Suite:** 640x480 @ 60Hz resolution display featuring:
+    * **Price Trend Charts:** Real-time scrolling line graphs for Buy and Sell prices.
+    * **Dynamic Spread Monitor:** Visual representation of the gap between prices.
+    * **Trade Volume Tracking:** Progress bar and numerical count for completed matches.
+* **State Machine Control:** Robust FSM managing `IDLE`, `MATCH`, and `HALT` (triggered at 100 trades).
 
-* 维护**8 级移位寄存器**的买/卖价窗口：每拍把新价格推进 `buy_q0/sell_q0`，旧值后移到 `q7`。
-* 组合逻辑求：`best_bid = max(buy_q0..buy_q7)`、`best_ask = min(sell_q0..sell_q7)`。
-* 生成：
+---
 
-  * `match_flag = (best_bid >= best_ask)`（并排除无效边界：买=0、卖=0xFF）。
-  * `trade_price = (best_bid + best_ask) >> 1`（中点价）。
+## 2. System Architecture
 
-## 3) 控制器 FSM（`controller_fsm.v`）
+### Modular Breakdown:
+1.  **`order_generator.v`**: Generates 8-bit prices (Buy: 50-81, Sell: 55-86).
+2.  **`matching_engine_8.v`**: 8-stage shift register window. Computes `match_flag` when $BestBid \ge BestAsk$.
+3.  **`controller_fsm.v`**: Oversees system states and stops execution when `MAX_TRADES` is reached.
+4.  **`vga_visualizer.v`**: The graphics engine. Maps price data to screen coordinates and manages the frame buffer for the line chart.
+5.  **`display_7seg.v`**: Drives HEX displays for immediate local monitoring.
 
-* 三态：`IDLE` / `MATCH` / `HALT`。
-* 转移由 `match_flag` 和 `halt_flag` 决定；在 `MATCH` 态输出 `enable_count=1`，其余为 0。
 
-## 4) 成交计数（`counter.v`）
 
-* 在 `enable_count & match_flag & !halt_flag` 时，`trade_count` 自增。
-* 达到阈值（`MAX_TRADES=100`）置位 `halt_flag=1`，系统进入停机态。
+---
 
-## 5) 价差计算（`spread_accumulator.v`）
+## 3. VGA Visualization Logic (Core Snippet)
 
-* 在 `enable_count & match_flag` 时计算**当前一拍的价差**：`spread_now = buy_price - sell_price`（按你现有代码是“本拍差值”，非累加和）。
+The visualization module converts price history into a pixel-map. Below is the simplified logic for rendering the trend lines:
 
-## 6) 板上显示（`display.v`）
+```verilog
+// Mapping Price to Y-Coordinate (Vertical Inversion)
+// Screen is 480 pixels high; Price range is mapped to a 200-pixel vertical band.
+wire [8:0] plot_y_buy  = 300 - (history_buffer_buy[x_pos] << 1);
+wire [8:0] plot_y_sell = 300 - (history_buffer_sell[x_pos] << 1);
 
-* HEX 显示（低位在 HEX0）：
-
-  * `HEX1:HEX0 = buy_price`
-  * `HEX3:HEX2 = sell_price`
-  * `HEX5:HEX4 = spread_now`
-* LED 指示：
-
-  * `LEDR[0] = match_flag`
-  * `LEDR[1] = halt_flag`
-  * `LEDR[3:2] = state`
-  * `LEDR[9:4] = trade_count[5:0]`
-
-## 7) 顶层集成（`system_top.v`）
-
-* 时钟：`CLOCK_50` 作为全局时钟；`KEY[0]` 低有效，翻转成模块内部的高有效 `reset`。
-* 串起 1→2→3→4→5→6 的信号通路，在板上即可看到价格、撮合与状态随时间变化。
-
-**一句话**：
-每拍产生一组买/卖价 → 写入 8 深度窗口 → 取最高买/最低卖判断是否成交 → 成交则计数，达到门限停机 → 价格/价差/状态实时上屏与点灯。
-s
+always @(*) begin
+    if (!video_on) 
+        {vga_r, vga_g, vga_b} = 12'h000;
+    else begin
+        // Default Background
+        {vga_r, vga_g, vga_b} = 12'h111; 
+        
+        // Render Buy Price Line (Blue)
+        if (y_pos == plot_y_buy)
+            {vga_r, vga_g, vga_b} = 12'h05F;
+            
+        // Render Sell Price Line (Red)
+        if (y_pos == plot_y_sell)
+            {vga_r, vga_g, vga_b} = 12'hF22;
+            
+        // Render Spread Indicator
+        if (x_pos > 600 && y_pos < (480 - current_spread))
+            {vga_r, vga_g, vga_b} = 12'hFF0; // Yellow bar
+    end
+end
